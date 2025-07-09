@@ -167,7 +167,11 @@ def get_soundcloud_queries(sc_url: str) -> List[str]:
 # ──────────────────────────────────────────────────────────────────────────────
 # GUI layer – only when Tk present & script executed directly
 # ──────────────────────────────────────────────────────────────────────────────
-if HAS_TK and __name__ == "__main__":
+def run_gui() -> None:
+    """Launch the SpotCloud Tkinter interface."""
+    if not HAS_TK:
+        raise RuntimeError("Tkinter is not available")
+
     # ── Modern look & feel ---------------------------------------------------
     root = tk.Tk()
     root.title(APP)
@@ -399,4 +403,9 @@ class TestHelpers(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        unittest.main(argv=[sys.argv[0]] + sys.argv[2:])
+    elif HAS_TK:
+        run_gui()
+    else:
+        print("Tkinter is not available; run with 'python main.py test' to execute unit tests.")
