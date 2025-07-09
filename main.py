@@ -171,7 +171,7 @@ if HAS_TK and __name__ == "__main__":
     # ── Modern look & feel ---------------------------------------------------
     root = tk.Tk()
     root.title(APP)
-    root.geometry("600x860")
+    root.geometry("600x900")
     root.minsize(560, 820)
 
     # Dark theme palette
@@ -267,12 +267,16 @@ if HAS_TK and __name__ == "__main__":
         insertbackground=FG,
         relief="flat",
         borderwidth=0,
+        height=12,
     )
     ys = ttk.Scrollbar(log_frame, command=log_txt.yview)
     log_txt.configure(yscrollcommand=ys.set)
     ys.pack(side="right", fill="y")
     log_txt.pack(side="left", fill="both", expand=True)
     log_txt.bind("<Key>", lambda e: "break")
+
+    progress = ttk.Progressbar(wrap, mode="indeterminate")
+    progress.pack(fill="x", pady=(4, 0))
 
     q: queue.Queue[str] = queue.Queue()
 
@@ -297,12 +301,14 @@ if HAS_TK and __name__ == "__main__":
             os.makedirs(out_dir, exist_ok=True)
         except PermissionError:
             messagebox.showerror("Permission", "Cannot write to selected folder.")
+            root.after(0, progress.stop)
             return
         if service == "Spotify":
             _do_spotify(url, out_dir, use_auth)
         else:
             _do_soundcloud(url, out_dir)
         log("✅ Finished")
+        root.after(0, progress.stop)
         messagebox.showinfo("Done", "Playlist download completed!")
 
     def _do_spotify(purl: str, out_dir: str, use_auth: bool):
@@ -349,6 +355,7 @@ if HAS_TK and __name__ == "__main__":
         if svc == "SoundCloud" and "soundcloud.com/" not in url:
             messagebox.showerror("URL", "Enter a valid SoundCloud playlist URL.")
             return
+        progress.start()
         threading.Thread(
             target=run_spotdl,
             args=(url, out_var.get().strip() or DEFAULT_OUT, svc, auth_var.get()),
